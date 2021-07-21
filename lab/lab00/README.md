@@ -11,6 +11,9 @@ $ python -i lab00.py
 2020
 ```
 
+Interactive controls. Each session keeps a history of what you have typed. To access that history, press <Control>-P (previous) and <Control>-N (next). <Control>-D exits a session, which discards this history. Up and down arrows also cycle through history on some systems.
+
+
 The **-m doctest** option runs doctests in a particular file. Doctests are defined in the docstring of functions. Each test in the file consists of >>> followed by some Python code and the expected output.
 
 ```shell
