@@ -9,9 +9,11 @@ $ python -i foo.py
 >>> foo
 "Hello World"
 ```
+
 ### **Keyboard shortcuts to exit an interactive session**
 - `Ctrl-D` for Linux/Mac
-- `Ctrl-Z Enter` for Windows
+- `Ctrl-Z Enter` for Windows  
+&nbsp;
 
 ### **Doctests**
 Doctests are defined within the docstring of functions with `>>>` followed by some Python code and the expected output.  
