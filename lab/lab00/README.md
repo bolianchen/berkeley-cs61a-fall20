@@ -1,4 +1,8 @@
-# Notes from Lab 0
+# Lab 00
+
+https://inst.eecs.berkeley.edu/~cs61a/fa20/lab/lab00/
+
+## Notes
 
 ### `-i` option
 Run a python script with `-i` option would opens an interactive session afterward; all defined variables, functions and classes in the script are accessible.
