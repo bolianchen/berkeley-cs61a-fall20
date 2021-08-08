@@ -36,7 +36,7 @@ def twenty_twenty():
 
 Run doctests in `lab00.py` with **`-m doctest`** option 
 ```shell
-$ python3 -m doctest lab00.py
+$ python3 -m doctest -v lab00.py
 Trying:
     twenty_twenty()
 Expecting:
