@@ -142,18 +142,21 @@ def silence(score0, score1):
     return silence
 
 def make_one_turn_play(dice, goal):
-    def play_one_turn(strategy, score, opponent_score): 
+    def play_one_turn(strategy, score, opponent_score, say): 
+        """Return whether the game stops and the score after one turn of play""" 
         num_rolls = strategy(score, opponent_score)
         score += take_turn(num_rolls, opponent_score, dice=dice) 
+        say = say(score, opponent_score)
         stop = False
         if score >= goal:
             stop = True
         while not stop and extra_turn(score, opponent_score):
             num_rolls = strategy(score, opponent_score)
             score += take_turn(num_rolls, opponent_score, dice=dice)
+            say = say(score, opponent_score)
             if score >= goal:
                 stop = True
-        return stop, score
+        return stop, score, say
     return play_one_turn
 
 def play(strategy0, strategy1, score0=0, score1=0, dice=six_sided,
@@ -174,20 +177,26 @@ def play(strategy0, strategy1, score0=0, score1=0, dice=six_sided,
     say:        The commentary function to call at the end of the first turn.
     """
     who = 0  # Who is about to take a turn, 0 (first) or 1 (second)
+
     # BEGIN PROBLEM 5
-    play_one_turn = make_one_turn_play(dice, goal)
-    stop = score0 >= goal or score1 >= goal
-    while not stop:
+    while score0 < goal and score1 < goal:
         if who == 0:
-            stop, score0 = play_one_turn(strategy0, score0, score1)
-            who = other(who)
+            num_rolls = strategy0(score0, score1)
+            score0 += take_turn(num_rolls, score1, dice=dice) 
+            score, opponent_score = score0, score1
+
         else:
-            stop, score1 = play_one_turn(strategy1, score1, score0)
+            num_rolls = strategy1(score1, score0)
+            score1 += take_turn(num_rolls, score0, dice=dice) 
+            score, opponent_score = score1, score0
+
+        if not extra_turn(score, opponent_score):
             who = other(who)
+
     # END PROBLEM 5
     # (note that the indentation for the problem 6 prompt (***YOUR CODE HERE***) might be misleading)
     # BEGIN PROBLEM 6
-    "*** YOUR CODE HERE ***"
+        say = say(score0, score1)
     # END PROBLEM 6
     return score0, score1
 
@@ -272,6 +281,27 @@ def announce_highest(who, last_score=0, running_high=0):
     assert who == 0 or who == 1, 'The who argument should indicate a player.'
     # BEGIN PROBLEM 7
     "*** YOUR CODE HERE ***"
+    def highest_announcer(score0, score1):
+        """
+        score0, score1: scores of the nearest turns
+        """
+        if who == 0:
+            score = score0
+        else:
+            score = score1
+
+        gain = score - last_score
+        if gain > running_high:
+            print(f'{gain} point(s)! The most yet for Player {who}')
+            running_h = gain
+        else:
+            running_h = running_high
+
+        last_s = score
+
+        return announce_highest(who, last_score = last_s, running_high=running_h)
+
+    return highest_announcer
     # END PROBLEM 7
 
 
