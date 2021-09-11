@@ -341,9 +341,13 @@ def make_averaged(original_function, trials_count=1000):
     3.0
     """
     # BEGIN PROBLEM 8
-    "*** YOUR CODE HERE ***"
+    def average_estimator(*arg, **kwarg):
+        total = 0
+        for i in range(trials_count):
+            total += original_function(*arg, **kwarg)
+        return total/trials_count
+    return average_estimator
     # END PROBLEM 8
-
 
 def max_scoring_num_rolls(dice=six_sided, trials_count=1000):
     """Return the number of dice (1 to 10) that gives the highest average turn
@@ -355,28 +359,39 @@ def max_scoring_num_rolls(dice=six_sided, trials_count=1000):
     1
     """
     # BEGIN PROBLEM 9
-    "*** YOUR CODE HERE ***"
+    scoring_judge = make_averaged(roll_dice, trials_count = trials_count)
+    max_score, optimal_num_rolls = 0, 0
+    for i in range(1, 11):
+        score = scoring_judge(i, dice) 
+        if score > max_score:
+            max_score, optimal_num_rolls = score, i
+    return optimal_num_rolls
     # END PROBLEM 9
 
-
-def winner(strategy0, strategy1):
+def winner(strategy0, strategy1, init_score0=0, init_score1=0):
     """Return 0 if strategy0 wins against strategy1, and 1 otherwise."""
-    score0, score1 = play(strategy0, strategy1)
+    score0, score1 = play(strategy0, strategy1,
+                          score0=init_score0, score1=init_score1)
     if score0 > score1:
         return 0
     else:
         return 1
 
-
-def average_win_rate(strategy, baseline=always_roll(6)):
+def average_win_rate(strategy, baseline=always_roll(6),
+                     init_score0=0, init_score1=0,
+                     trials_count=1000):
     """Return the average win rate of STRATEGY against BASELINE. Averages the
     winrate when starting the game as player 0 and as player 1.
     """
-    win_rate_as_player_0 = 1 - make_averaged(winner)(strategy, baseline)
-    win_rate_as_player_1 = make_averaged(winner)(baseline, strategy)
+    winning_evaluator = make_averaged(winner, trials_count=trials_count)
+    win_rate_as_player_0 = 1 - winning_evaluator(strategy, baseline,
+                                                 init_score0 = init_score0,
+                                                 init_score1 = init_score1)
+    win_rate_as_player_1 = winning_evaluator(baseline, strategy,
+                                             init_score0 = init_score1,
+                                             init_score1 = init_score0)
 
     return (win_rate_as_player_0 + win_rate_as_player_1) / 2
-
 
 def run_experiments():
     """Run a series of strategy experiments and report results."""
@@ -384,17 +399,25 @@ def run_experiments():
         six_sided_max = max_scoring_num_rolls(six_sided)
         print('Max scoring num rolls for six-sided dice:', six_sided_max)
 
-    if False:  # Change to True to test always_roll(8)
+    if True:  # Change to True to test always_roll(8)
         print('always_roll(8) win rate:', average_win_rate(always_roll(8)))
 
-    if False:  # Change to True to test bacon_strategy
+    if True:  # Change to True to test bacon_strategy
         print('bacon_strategy win rate:', average_win_rate(bacon_strategy))
 
-    if False:  # Change to True to test extra_turn_strategy
+    if True:  # Change to True to test extra_turn_strategy
         print('extra_turn_strategy win rate:', average_win_rate(extra_turn_strategy))
 
-    if False:  # Change to True to test final_strategy
+    if True:  # Change to True to test final_strategy
+        print('extra_turn_strategy win rate against always_roll(4):',
+              average_win_rate(extra_turn_strategy, baseline=always_roll(4)))
+
+    if True:  # Change to True to test final_strategy
         print('final_strategy win rate:', average_win_rate(final_strategy))
+
+    if True:  # Change to True to test final_strategy
+        print('final_strategy win rate against always_roll(4):',
+              average_win_rate(final_strategy, baseline=always_roll(4)))
 
     "*** You may add additional experiments as you wish ***"
 
@@ -405,7 +428,9 @@ def bacon_strategy(score, opponent_score, cutoff=8, num_rolls=6):
     rolls NUM_ROLLS otherwise.
     """
     # BEGIN PROBLEM 10
-    return 6  # Replace this statement
+    if free_bacon(opponent_score) >= cutoff:
+        return 0
+    return num_rolls
     # END PROBLEM 10
 
 
@@ -415,7 +440,9 @@ def extra_turn_strategy(score, opponent_score, cutoff=8, num_rolls=6):
     Otherwise, it rolls NUM_ROLLS.
     """
     # BEGIN PROBLEM 11
-    return 6  # Replace this statement
+    if extra_turn(score+free_bacon(opponent_score), opponent_score):
+        return 0
+    return bacon_strategy(score, opponent_score, cutoff=cutoff, num_rolls=num_rolls)
     # END PROBLEM 11
 
 
@@ -425,7 +452,17 @@ def final_strategy(score, opponent_score):
     *** YOUR DESCRIPTION HERE ***
     """
     # BEGIN PROBLEM 12
-    return 6  # Replace this statement
+    baseline = always_roll(4)
+    if extra_turn(score+free_bacon(opponent_score), opponent_score):
+        return 0
+    max_win_rate, optimal_num_rolls = 0, 0
+    for i in range(1, 11):
+        win_rate = average_win_rate(always_roll(i), baseline=baseline,
+                                    init_score0=score, init_score1=opponent_score,
+                                    trials_count=10)
+        if win_rate > max_win_rate:
+            max_win_rate, optimal_num_rolls = win_rate, i
+    return optimal_num_rolls
     # END PROBLEM 12
 
 ##########################
