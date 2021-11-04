@@ -89,7 +89,13 @@ def autocorrect(user_word, valid_words, diff_function, limit):
     than LIMIT.
     """
     # BEGIN PROBLEM 5
-    "*** YOUR CODE HERE ***"
+    if user_word in valid_words:
+        return user_word
+    least_diff_word = min(valid_words,
+                          key=lambda vw: diff_function(user_word, vw, limit))
+    if diff_function(user_word, least_diff_word, limit) <= limit:
+        return least_diff_word
+    return user_word
     # END PROBLEM 5
 
 
@@ -99,36 +105,80 @@ def shifty_shifts(start, goal, limit):
     their lengths.
     """
     # BEGIN PROBLEM 6
-    assert False, 'Remove this line'
+    if start == goal:
+        return 0
+    elif limit == 0:
+        return 1
+    elif start == '' or goal == '':
+        return max(len(start), len(goal))
+    elif start[0] == goal[0]:
+        return 0 + shifty_shifts(start[1:], goal[1:], limit)
+    else:
+        return 1 + shifty_shifts(start[1:], goal[1:], limit-1)
     # END PROBLEM 6
-
 
 def pawssible_patches(start, goal, limit):
     """A diff function that computes the edit distance from START to GOAL."""
-    assert False, 'Remove this line'
-
-    if ______________: # Fill in the condition
-        # BEGIN
-        "*** YOUR CODE HERE ***"
-        # END
-
-    elif ___________: # Feel free to remove or add additional cases
-        # BEGIN
-        "*** YOUR CODE HERE ***"
-        # END
-
+    #assert False, 'Remove this line'
+    
+    if start == goal:
+        return 0
+    elif limit == 0:
+        return 1
+    elif start == '' or goal == '':
+        return max(len(start), len(goal))
+    elif start[0] == goal[0]:
+        return pawssible_patches(start[1:], goal[1:], limit)
     else:
-        add_diff = ... # Fill in these lines
-        remove_diff = ...
-        substitute_diff = ...
-        # BEGIN
-        "*** YOUR CODE HERE ***"
-        # END
+        add_diff = 1 + pawssible_patches(start, goal[1:], limit-1)
+        remove_diff = 1 + pawssible_patches(start[1:], goal, limit-1)
+        substitute_diff = 1 + pawssible_patches(start[1:], goal[1:], limit-1)
+        return min(add_diff, remove_diff, substitute_diff) 
 
 
 def final_diff(start, goal, limit):
-    """A diff function. If you implement this function, it will be used."""
-    assert False, 'Remove this line to use your final_diff function'
+    """A diff function. 
+
+    based on the implementation of pawssible_patches, more ideas are involved
+    - treat deleting one of two repetitive letters as no change
+    - treat swapped adjacent letters as a one change
+    - incorporate common mispelling
+    """
+    #assert False, 'Remove this line to use your final_diff function'
+    common_misspellings = {'absense': 'absence',
+                           'acceptible': 'acceptable',
+                           'judgement': 'judgment',
+                           'lightening': 'lightning',
+                           'maintainance': 'maintenance'}
+    if start == goal:
+        return 0
+    elif start in common_misspellings:
+        return final_diff(common_misspellings[start], goal, limit)
+    elif limit == 0:
+        return 1
+    elif start == '' or goal == '':
+        return max(len(start), len(goal))
+    elif start[0] == goal[0]:
+        return final_diff(start[1:], goal[1:], limit)
+    else:
+        # check misspe
+        add_diff = 1 + final_diff(start, goal[1:], limit-1)
+        remove_diff = 1 + final_diff(start[1:], goal, limit-1)
+        substitute_diff = 1 + final_diff(start[1:], goal[1:], limit-1)
+        if len(start) > 1:
+            swap_diff = 1 + final_diff(swap_first_letters(start), goal, limit-1)
+            if start[0] == start[1]:
+                del_rep_diff = final_diff(start[1:], goal, limit)
+            
+            return min(add_diff, remove_diff, substitute_diff, swap_diff, del_rep_diff) 
+        return min(add_diff, remove_diff, substitute_diff) 
+
+def swap_first_letters(string):
+    """ Swap the letters at index 0 and 1 """
+    return string[1] + string[0] + string[2:]
+    
+    
+
 
 
 ###########
@@ -139,7 +189,16 @@ def final_diff(start, goal, limit):
 def report_progress(typed, prompt, user_id, send):
     """Send a report of your id and progress so far to the multiplayer server."""
     # BEGIN PROBLEM 8
-    "*** YOUR CODE HERE ***"
+    total_words = len(prompt)
+    count = 0
+    for tp, ans in zip(typed, prompt):
+        if tp == ans:
+            count+=1
+        else:
+            break
+    ratio = count/total_words
+    send({'id': user_id, 'progress': ratio})
+    return ratio
     # END PROBLEM 8
 
 
@@ -165,7 +224,15 @@ def time_per_word(times_per_player, words):
         words: a list of words, in the order they are typed.
     """
     # BEGIN PROBLEM 9
-    "*** YOUR CODE HERE ***"
+    times = []
+    for ts in times_per_player:
+        i,j = 0, 1
+        pt = []
+        while j < len(ts):
+            pt.append(ts[j]-ts[i])
+            i,j = i+1, j+1
+        times.append(pt)
+    return game(words, times)
     # END PROBLEM 9
 
 
@@ -180,9 +247,13 @@ def fastest_words(game):
     player_indices = range(len(all_times(game)))  # contains an *index* for each player
     word_indices = range(len(all_words(game)))    # contains an *index* for each word
     # BEGIN PROBLEM 10
-    "*** YOUR CODE HERE ***"
+    records = [[] for _ in player_indices] # create the list of lists to return
+    for w_ind in word_indices: # words are not repetive in the lists
+        p_ind_fastest = sorted(
+                player_indices, key=lambda p_ind: time(game, p_ind, w_ind))[0]
+        records[p_ind_fastest].append(word_at(game, w_ind))
+    return records
     # END PROBLEM 10
-
 
 def game(words, times):
     """A data abstraction containing all words typed and their times."""
